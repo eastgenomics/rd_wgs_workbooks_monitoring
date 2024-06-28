@@ -59,8 +59,8 @@ def dx_login(token):
 
 def find_jobs(dx_project, time):
     '''
-    Find eggd_generate_rd_wgs_workbook jobs jobs that have run in the given
-    project in the given time period
+    Find eggd_generate_rd_wgs_workbook jobs that have run in the given project
+    in the given time period
 
     Inputs:
         dx_project (str): DNAnexus project ID to search within
