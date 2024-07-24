@@ -6,6 +6,8 @@ Will verify that an .xlsx file has been made for a given file ID for a GEL JSON
 import dxpy as dx
 import argparse
 import json
+import pyodbc
+import pandas as pd
 
 def parse_args():
     '''
@@ -152,14 +154,13 @@ def check_if_correct_json_downloaded(json_file_id, rnumber):
             f"oh no! R number {rnumber} is NOT present in {json_file_id}"
         )
 
-def monitor():
+def monitor(args):
     '''
     Entry function
     '''
     print("Checking for eggd_generate_rd_wgs_workbook jobs...")
 
-    args = parse_args()
-
+    
     dx_login(args.dx_token)
     jobs = find_jobs(args.dx_project, args.time)
 
@@ -178,6 +179,32 @@ def monitor():
 
     check_if_correct_json_downloaded(args.json, args.rnumber)
 
+def launch(args):
+    conn_str = (
+        f"DSN=gemini;DRIVER={{SQL Server Native Client 11.0}};"
+        f"UID={args.uid};PWD={args.password}"
+    )
+    # establish connection
+    conn = pyodbc.connect(conn_str)
+    cursor = conn.cursor()
+    query = "SELECT [ReferralNumber] FROM [Shiredate].[dbo].CIPAPIReferralNumber;"
+
+    df = pd.read_sql(query, cursor)
+    print(df)
+    cursor.execute(query)
+
+    conn.close
+
+def main():
+    args = parse_args()
+
+    launch(args)
+    # if args.launch:
+    #     launch(args)
+
+    # if args.monitor:
+    #     monitor(args)
+
 
 if __name__ == "__main__":
-    monitor()
+    main()
