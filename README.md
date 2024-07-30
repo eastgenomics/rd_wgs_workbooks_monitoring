@@ -25,6 +25,6 @@ A map of the process is shown below:
 
 ## Command to run
 ```
-python3 rd_wgs_workbooks_monitoring.py --uid <user_id> --password <password> --dx_token <token>
+python3 rd_wgs_workbooks_monitor.py --uid <user_id> --password <password> --dx_token <token>
 --config ..\rd_wgs_workbook_monitor_config\rd_wgs_workbook_monitor_config_1.0.0.json
 ```
