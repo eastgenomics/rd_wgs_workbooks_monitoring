@@ -9,6 +9,7 @@ import pyodbc
 import pandas as pd
 import time
 
+
 def parse_args():
     '''
     Parse command line arguments
@@ -36,6 +37,7 @@ def parse_args():
     )
     return parser.parse_args()
 
+
 def dx_login(token):
     '''
     Function to check authenticating to DNAnexus
@@ -53,6 +55,7 @@ def dx_login(token):
         dx.api.system_whoami()
     except dx.exceptions.InvalidAuthentication as err:
         print(err.error_message())
+
 
 def check_if_correct_json_downloaded(json_file_id, rnumber, conn):
     '''
@@ -82,10 +85,11 @@ def check_if_correct_json_downloaded(json_file_id, rnumber, conn):
         )
         update_shire(query, conn)
 
+
 def update_shire(query, conn):
     '''
     Run a shire query to update the table
-    
+
     Inputs:
         query (str): SQL query to use on database
         conn: pyodbc database connection
@@ -93,6 +97,7 @@ def update_shire(query, conn):
     cursor = conn.cursor()
     cursor.execute(query)
     conn.commit()
+
 
 def monitor(jobs_launched, conn):
     '''
@@ -108,7 +113,9 @@ def monitor(jobs_launched, conn):
     for json_file_id, job in jobs_launched.items():
         status = job.describe().get('state')
         if status == 'done':
-            xlsx_file_id = job.describe().get('input').get('json').get('$dnanexus_link')
+            xlsx_file_id = job.describe().get('input').get('json').get(
+                '$dnanexus_link'
+            )
             query = (
                 "UPDATE dbo.CIPAPIReferralNumber "
                 "SET StatusReferralNumberID = 9 "
@@ -128,6 +135,7 @@ def monitor(jobs_launched, conn):
     # Close connection
     conn.close()
 
+
 def launch(args, conn):
     '''
     Check if R number in JSON matches desired R number, and if so launch
@@ -135,7 +143,7 @@ def launch(args, conn):
 
     Inputs:
         args: argparse Namespace of parsed command line arguments
-        conn: pyodbc database connection 
+        conn: pyodbc database connection
     '''
     query = (
         "SELECT * FROM dbo.CIPAPIReferralNumber WHERE StatusReferralNumberID "
@@ -212,6 +220,7 @@ def launch(args, conn):
         update_shire(query, conn)
 
     return launched_jobs
+
 
 def main():
     '''
