@@ -8,7 +8,6 @@ import json
 import pyodbc
 import pandas as pd
 import time
-import os
 
 def parse_args():
     '''
