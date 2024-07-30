@@ -62,29 +62,34 @@ def check_if_correct_json_downloaded(json_file_id, rnumber, conn):
     Inputs:
         json_file_id (str): DNAnexus file ID for a GEL RD WGS JSON
         rnumber (str): GEL family ID
+        conn: pyodbc database connection
     '''
     with dx.open_dxfile(json_file_id, mode='r') as f:
         c = f.read()
     query_json = json.loads(c)
 
-    if query_json['referral']['referral_id'] == rnumber:
+    if query_json['family_id'] == rnumber:
         query = (
             f"UPDATE dbo.CIPAPIReferralNumber SET StatusReferralNumberID = 6"
-            f" WHERE JSONFileID = {json_file_id} and "
-            f"ReferralNumber = {rnumber}"
+            f" WHERE JSONFileID = '{json_file_id}' and "
+            f"ReferralNumber = '{rnumber}'"
         )
         update_shire(query, conn)
     else:
         query = (
             f"UPDATE dbo.CIPAPIReferralNumber SET StatusReferralNumberID = 7 "
-            f" WHERE JSONFileID = {json_file_id} and "
-            f"ReferralNumber = {rnumber}"
+            f" WHERE JSONFileID = '{json_file_id}' and "
+            f"ReferralNumber = '{rnumber}'"
         )
         update_shire(query, conn)
 
 def update_shire(query, conn):
     '''
     Run a shire query to update the table
+    
+    Inputs:
+        query (str): SQL query to use on database
+        conn: pyodbc database connection
     '''
     cursor = conn.cursor()
     cursor.execute(query)
@@ -94,6 +99,10 @@ def monitor(jobs_launched, conn):
     '''
     Check jobs launched for completed jobs and update Shire database to
     change status for successful jobs to XlsxCreated and add the file ID.
+
+    Inputs:
+        jobs_launched (dict): dict of json file ID and DX job object
+        conn: pyodbc database connection
     '''
     print("Checking status of eggd_generate_rd_wgs_workbook jobs...")
 
@@ -104,8 +113,8 @@ def monitor(jobs_launched, conn):
             query = (
                 "UPDATE dbo.CIPAPIReferralNumber "
                 "SET StatusReferralNumberID = 9 "
-                f"AND XLSXFileID = {xlsx_file_id}"
-                f"WHERE JSONFileID = {json_file_id}"
+                f"AND XLSXFileID = '{xlsx_file_id}'"
+                f"WHERE JSONFileID = '{json_file_id}'"
             )
             update_shire(query, conn)
         else:
@@ -122,15 +131,18 @@ def monitor(jobs_launched, conn):
 
 def launch(args, conn):
     '''
-    Launch eggd_generate_rd_wgs_workbook jobs
+    Check if R number in JSON matches desired R number, and if so launch
+    eggd_generate_rd_wgs_workbook jobs for each JSON.
+
+    Inputs:
+        args: argparse Namespace of parsed command line arguments
+        conn: pyodbc database connection 
     '''
-    #cursor = conn.cursor()
     query = (
         "SELECT * FROM dbo.CIPAPIReferralNumber WHERE StatusReferralNumberID "
-        " IN (5, 8);"
+        " = 5;"
     )
-
-    df = pd.read_sql(query)
+    df = pd.read_sql(query, conn)
 
     # If testing, limit to first five records in Shire.
     if args.testing is True:
@@ -139,26 +151,29 @@ def launch(args, conn):
     print(df)
 
     print("Checking that the R number in JSON is correct...")
-    for index, row in df.iterrows():
-        rnumber = row['ReferralNumber']
-        json_file_id = row["JSONFileID"]
-        check_if_correct_json_downloaded(json_file_id, rnumber, conn)
+    if not df.empty:
+        for index, row in df.iterrows():
+            rnumber = row['ReferralNumber']
+            json_file_id = row["JSONFileID"]
+            check_if_correct_json_downloaded(json_file_id, rnumber, conn)
+    else:
+        print("No records found in status JSONUploaded. Continuing...")
 
+    print("Checking for records in status JSONCheckPass or DXJobStarted")
     query = (
         "Select * FROM dbo.CIPAPIReferralNumber WHERE StatusReferralNumberID "
-        " = 6"
+        "IN (6, 8)"
     )
+
+    df = pd.read_sql(query, conn)
 
     # Open config with eggd_generate_rd_wgs_workbook app inputs
     with open(args.config) as f:
         config = json.load(f)
 
     if df.empty:
-        print("No records found with status JSONUploaded")
+        print("No records found with status JSONCheckPass or DXJobStarted")
         return None
-
-    # Get project to launch in
-    project = os.environ.get("DX_PROJECT_CONTEXT_ID")
 
     print("Launching DNAnexus jobs...")
     launched_jobs = {}
@@ -171,7 +186,7 @@ def launch(args, conn):
             app_input={
                 'json': {
                     "$dnanexus_link": {
-                        "project": 'project-GkvYVxj47gjx87kbgv61ZVQQ',
+                        "project": 'project-GpV5V1j4f83q40F06kq5Gyx3',
                         "id": json_file_id
                     }
                 },
@@ -181,7 +196,7 @@ def launch(args, conn):
                     "eggd_generate_rd_wgs_workbook_config"
                     ],
             },
-            project=project,
+            project='project-GpYqX00479VF40F06kq69Jjj',
             name=f'eggd_generate_rd_variant_workbook_{rnumber}'
         )
 
@@ -192,8 +207,8 @@ def launch(args, conn):
 
         query = (
             f"UPDATE dbo.CIPAPIReferralNumber"
-            " SET StatusReferralNumberID = 8 WHERE"
-            f"JSONFileID = {json_file_id} and ReferralNumber = {rnumber}"
+            " SET StatusReferralNumberID = 8 WHERE "
+            f"JSONFileID = '{json_file_id}' AND ReferralNumber = '{rnumber}';"
         )
         update_shire(query, conn)
 
@@ -219,7 +234,8 @@ def main():
 
     if jobs is not None:
         # Wait 15 mins to allow jobs to complete (each job takes about 3 mins)
-        time.sleep(15)
+        print("Pausing to allow jobs to complete...")
+        time.sleep(900)
 
         # Monitor the jobs
         monitor(jobs, conn)
