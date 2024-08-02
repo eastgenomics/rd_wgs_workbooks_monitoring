@@ -72,15 +72,15 @@ def check_if_correct_json_downloaded(json_file_id, rnumber, conn):
 
     if query_json['family_id'] == rnumber:
         query = (
-            f"UPDATE dbo.CIPAPIReferralNumber SET StatusReferralNumberID = 6"
-            f" WHERE JSONFileID = '{json_file_id}' and "
+            f"UPDATE dbo.CIPAPIReferralNumber SET StatusReferralNumberID = 6 "
+            f"WHERE JSONFileID = '{json_file_id}' AND "
             f"ReferralNumber = '{rnumber}'"
         )
         update_shire(query, conn)
     else:
         query = (
             f"UPDATE dbo.CIPAPIReferralNumber SET StatusReferralNumberID = 7 "
-            f" WHERE JSONFileID = '{json_file_id}' and "
+            f"WHERE JSONFileID = '{json_file_id}' AND "
             f"ReferralNumber = '{rnumber}'"
         )
         update_shire(query, conn)
@@ -118,8 +118,8 @@ def monitor(jobs_launched, conn):
             )
             query = (
                 "UPDATE dbo.CIPAPIReferralNumber "
-                "SET StatusReferralNumberID = 9 "
-                f"AND XLSXFileID = '{xlsx_file_id}'"
+                "SET StatusReferralNumberID = 9, "
+                f"XLSXFileID = '{xlsx_file_id}' "
                 f"WHERE JSONFileID = '{json_file_id}'"
             )
             update_shire(query, conn)
