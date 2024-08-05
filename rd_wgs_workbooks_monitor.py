@@ -32,11 +32,10 @@ def parse_args():
         help="If set to true will limit number of jobs launched to 5"
     )
     parser.add_argument(
-        "--download", action=argparse.BooleanOptionalAction,
-        help="If set to true will download workbooks to clingen in the folder"
-        "//clingen/cg/Regional Genetics Laboratories\Molecular Genetics\Data "
-        "archive\Sequencing HT\WGS_automated"
-    )
+        "--download_path", required=False,
+        help="If specified will download the workbooks to the that path. Must"
+        " end with a forward stroke"
+)
     parser.add_argument("--uid", required=True, help="uid to connect server")
     parser.add_argument(
         "--password", "-pw", required=True, help="password to connect server"
@@ -105,7 +104,7 @@ def update_shire(query, conn):
     conn.commit()
 
 
-def download(xlsx_files):
+def download(xlsx_files, path):
     '''
     Download xlsx files to clingen
     Inputs:
@@ -115,7 +114,7 @@ def download(xlsx_files):
     for rnumber, file_id in xlsx_files.items():
         dx.bindings.download_dxfile(
             file_id,
-            f"//clingen/cg/Regional Genetics Laboratories\Molecular Genetics\Data archive\Sequencing HT\WGS_automated\{rnumber}.xlsx"
+            path + rnumber + ".xlsx"
         )
 
 
@@ -269,8 +268,8 @@ def main():
         # Monitor the jobs
         xlsx_file_ids = monitor(jobs, conn)
 
-    if xlsx_file_ids and args.download:
-        download(xlsx_file_ids)
+    if xlsx_file_ids and args.download_path:
+        download(xlsx_file_ids, args.download_path)
 
     # Close connection
     conn.close()
