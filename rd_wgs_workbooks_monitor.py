@@ -107,7 +107,7 @@ def update_shire(query, conn):
 
 def download(xlsx_files):
     '''
-    Download files to clingen
+    Download xlsx files to clingen
     Inputs:
         xlsx_files (dict): dict of rnumber:xlsx_file_id
     '''
