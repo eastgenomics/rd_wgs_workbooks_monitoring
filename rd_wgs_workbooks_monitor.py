@@ -35,7 +35,7 @@ def parse_args():
         "--download_path", required=False,
         help="If specified will download the workbooks to the that path. Must"
         " end with a forward stroke"
-)
+    )
     parser.add_argument("--uid", required=True, help="uid to connect server")
     parser.add_argument(
         "--password", "-pw", required=True, help="password to connect server"
