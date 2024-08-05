@@ -106,11 +106,12 @@ def update_shire(query, conn):
 
 def download(xlsx_files, path):
     '''
-    Download xlsx files to clingen
+    Download xlsx files to specified path
     Inputs:
         xlsx_files (dict): dict of rnumber:xlsx_file_id
+        path (str): path for download of xlsx files
     '''
-    print("Downloading to clingen...")
+    print(f"Downloading to {path}...")
     for rnumber, file_id in xlsx_files.items():
         dx.bindings.download_dxfile(
             file_id,
