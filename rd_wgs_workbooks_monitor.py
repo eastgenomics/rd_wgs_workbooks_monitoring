@@ -127,6 +127,7 @@ def download(xlsx_files, download_path, conn):
             )
             update_shire(query, conn)
 
+
 def monitor(jobs_launched, conn):
     '''
     Check jobs launched for completed jobs and update Shire database to
