@@ -21,10 +21,12 @@ A map of the process is shown below:
 
 **Inputs (optional)**:
 * `--testing`: if specified, will run first 5 records in database only.
+* `--download_path`: if specified, will download workbooks to the specified path
 
 
 ## Command to run
 ```
 python3 rd_wgs_workbooks_monitor.py --uid <user_id> --password <password> --dx_token <token>
 --config ..\rd_wgs_workbook_monitor_config\rd_wgs_workbook_monitor_config_1.0.0.json
+--download_path "//clingen/cg/Regional Genetics Laboratories/Molecular Genetics/Data archive/Sequencing HT/WGS_automated/"
 ```

@@ -8,6 +8,7 @@ import json
 import pyodbc
 import pandas as pd
 import time
+import os
 
 
 def parse_args():
@@ -30,6 +31,11 @@ def parse_args():
     parser.add_argument(
         "--testing", action=argparse.BooleanOptionalAction,
         help="If set to true will limit number of jobs launched to 5"
+    )
+    parser.add_argument(
+        "--download_path", required=False,
+        help="If specified will download the workbooks to the that path. Must"
+        " end with a forward stroke"
     )
     parser.add_argument("--uid", required=True, help="uid to connect server")
     parser.add_argument(
@@ -99,6 +105,29 @@ def update_shire(query, conn):
     conn.commit()
 
 
+def download(xlsx_files, download_path, conn):
+    '''
+    Download xlsx files to specified path
+    Inputs:
+        xlsx_files (dict): dict of rnumber:xlsx_file_id
+        download_path (str): path for download of xlsx files
+    '''
+    print(f"Downloading to {download_path}...")
+    for rnumber, file_id in xlsx_files.items():
+        dx.bindings.download_dxfile(
+            file_id,
+            download_path + rnumber + ".xlsx"
+        )
+
+        if os.path.isfile(download_path + rnumber + ".xlsx"):
+            query = (
+                "UPDATE dbo.CIPAPIReferralNumber "
+                "SET StatusReferralNumberID = 10 "
+                f"WHERE ReferralNumber = '{rnumber}'"
+            )
+            update_shire(query, conn)
+
+
 def monitor(jobs_launched, conn):
     '''
     Check jobs launched for completed jobs and update Shire database to
@@ -109,31 +138,32 @@ def monitor(jobs_launched, conn):
         conn: pyodbc database connection
     '''
     print("Checking status of eggd_generate_rd_wgs_workbook jobs...")
+    xlsx_file_ids = {}
 
-    for json_file_id, job in jobs_launched.items():
+    for rnumber, job in jobs_launched.items():
         status = job.describe().get('state')
         if status == 'done':
-            xlsx_file_id = job.describe().get('input').get('json').get(
+            xlsx_file_id = job.describe().get('output').get('xlsx_report').get(
                 '$dnanexus_link'
             )
+            xlsx_file_ids[rnumber] = xlsx_file_id
             query = (
                 "UPDATE dbo.CIPAPIReferralNumber "
                 "SET StatusReferralNumberID = 9, "
                 f"XLSXFileID = '{xlsx_file_id}' "
-                f"WHERE JSONFileID = '{json_file_id}'"
+                f"WHERE ReferralNumber = '{rnumber}'"
             )
             update_shire(query, conn)
         else:
             job_id = job.describe().get('id')
             print(
-                f"Job {job_id} for JSON {json_file_id} has status {status}. "
+                f"Job {job_id} for sample {rnumber} has status {status}. "
                 "XLSX report not generated; record in Shire will remain in "
                 "status DXJobStarted and will run again on next running of "
                 "this script."
             )
 
-    # Close connection
-    conn.close()
+    return xlsx_file_ids
 
 
 def launch(args, conn):
@@ -210,7 +240,7 @@ def launch(args, conn):
         job_id = job.describe().get('id')
 
         print(f"Launched DX job {job_id} for {rnumber} ({json_file_id})")
-        launched_jobs[json_file_id] = job
+        launched_jobs[rnumber] = job
 
         query = (
             f"UPDATE dbo.CIPAPIReferralNumber"
@@ -246,8 +276,13 @@ def main():
         time.sleep(900)
 
         # Monitor the jobs
-        monitor(jobs, conn)
+        xlsx_file_ids = monitor(jobs, conn)
 
+    if xlsx_file_ids and args.download_path:
+        download(xlsx_file_ids, args.download_path, conn)
+
+    # Close connection
+    conn.close()
 
 if __name__ == "__main__":
     main()
