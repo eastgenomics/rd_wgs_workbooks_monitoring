@@ -110,7 +110,7 @@ def download(xlsx_files, download_path, conn):
     Download xlsx files to specified path
     Inputs:
         xlsx_files (dict): dict of rnumber:xlsx_file_id
-        path (str): path for download of xlsx files
+        download_path (str): path for download of xlsx files
     '''
     print(f"Downloading to {download_path}...")
     for rnumber, file_id in xlsx_files.items():
