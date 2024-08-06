@@ -8,6 +8,7 @@ import json
 import pyodbc
 import pandas as pd
 import time
+import os
 
 
 def parse_args():
@@ -104,20 +105,27 @@ def update_shire(query, conn):
     conn.commit()
 
 
-def download(xlsx_files, path):
+def download(xlsx_files, download_path, conn):
     '''
     Download xlsx files to specified path
     Inputs:
         xlsx_files (dict): dict of rnumber:xlsx_file_id
         path (str): path for download of xlsx files
     '''
-    print(f"Downloading to {path}...")
+    print(f"Downloading to {download_path}...")
     for rnumber, file_id in xlsx_files.items():
         dx.bindings.download_dxfile(
             file_id,
-            path + rnumber + ".xlsx"
+            download_path + rnumber + ".xlsx"
         )
 
+        if os.path.isfile(download_path + rnumber + ".xlsx"):
+            query = (
+                "UPDATE dbo.CIPAPIReferralNumber "
+                "SET StatusReferralNumberID = 10 "
+                f"WHERE ReferralNumber = '{rnumber}'"
+            )
+            update_shire(query, conn)
 
 def monitor(jobs_launched, conn):
     '''
@@ -270,7 +278,7 @@ def main():
         xlsx_file_ids = monitor(jobs, conn)
 
     if xlsx_file_ids and args.download_path:
-        download(xlsx_file_ids, args.download_path)
+        download(xlsx_file_ids, args.download_path, conn)
 
     # Close connection
     conn.close()
