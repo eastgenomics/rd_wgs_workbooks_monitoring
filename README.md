@@ -4,7 +4,7 @@
 > Shire is a live database, so be careful when running!
 
 ## What does this script do?
-rd_wgs_workbooks_monitor.py is a script that runs on the Ida server. It uses the information in the Shire CIPAPIReferralNumber table (the GEL R numbers and RD WGS GEL JSON file IDs) check the RD WGS JSON files on DNAnexus have the correct case R number, and if so, launch [eggd_generate_rd_wgs_workbook](https://github.com/eastgenomics/eggd_generate_rd_wgs_workbook) DNAnexus jobs, and record the output xlsx file ID in Shire.
+rd_wgs_workbooks_monitor.py is a script that runs on the Ida server. It uses the current user's login details to authenticate to the Shire database. Once connected to Shire, it uses the GEL R numbers and RD WGS GEL JSON file IDs in the Shire CIPAPIReferralNumber table, checks the RD WGS JSON files on DNAnexus have the correct case R number, and if so, launches [eggd_generate_rd_wgs_workbook](https://github.com/eastgenomics/eggd_generate_rd_wgs_workbook) DNAnexus jobs, and records the output xlsx file ID in Shire.
 
 A map of the process is shown below:
 
