@@ -37,10 +37,6 @@ def parse_args():
         help="If specified will download the workbooks to the that path. Must"
         " end with a forward stroke"
     )
-    parser.add_argument("--uid", required=True, help="uid to connect server")
-    parser.add_argument(
-        "--password", "-pw", required=True, help="password to connect server"
-    )
     return parser.parse_args()
 
 
@@ -261,11 +257,10 @@ def main():
     dx_login(args.dx_token)
 
     # Establish connection
-    conn_str = (
-        f"DSN=gemini;DRIVER={{SQL Server Native Client 11.0}};"
-        f"UID={args.uid};PWD={args.password}"
+    conn = pyodbc.connect(
+        "DRIVER={ODBC Driver 18 for SQL Server}; SERVER=CS02-Shire; "
+        "DATABASE=Shiredata; TrustServerCertificate=yes;Trusted_Connection=yes"
     )
-    conn = pyodbc.connect(conn_str)
 
     # Launch the jobs
     jobs = launch(args, conn)

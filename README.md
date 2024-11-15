@@ -10,12 +10,7 @@ A map of the process is shown below:
 
 ![Image of workflow](RD_WGS_Shire_workflow.png)
 
-> [!NOTE]  
-> The trust PC used to run this script must have DSN called gemini, set to authenticate using SQL server, with the service account (i.e BIOINFORMATICS). WDHS4NM4621 PC has been set up for this.
-
 **Inputs (required)**:
-* `--uid`: user ID to connect to the database server
-* `--password`: password to connect to the database server
 * `--dx_token`: DNAnexus token
 * `--config`: JSON config for monitor. Should be most recent release. See [rd_wgs_workbook_monitor_config](https://github.com/eastgenomics/rd_wgs_workbook_monitor_config) for more details
 
@@ -24,9 +19,9 @@ A map of the process is shown below:
 * `--download_path`: if specified, will download workbooks to the specified path
 
 
-## Command to run
+## Example command to run
 ```
-python3 rd_wgs_workbooks_monitor.py --uid <user_id> --password <password> --dx_token <token>
---config ..\rd_wgs_workbook_monitor_config\rd_wgs_workbook_monitor_config_1.0.0.json
---download_path "//clingen/cg/Regional Genetics Laboratories/Molecular Genetics/Data archive/Sequencing HT/WGS_automated/"
+python3 rd_wgs_workbooks_monitor.py --dx_token <token>
+--config /appdata/configs/rd_wgs_workbooks/rd_wgs_workbook_monitor_config_1.0.0.json
+--download_path "/appdata/clingen/cg/Regional Genetics Laboratories/Molecular Genetics/Data archive/Sequencing HT/WGS_automated/"
 ```
