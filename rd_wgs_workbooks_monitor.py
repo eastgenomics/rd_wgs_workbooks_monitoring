@@ -254,7 +254,10 @@ def main():
     '''
     args = parse_args()
 
-    dx_login(args.dx_token)
+    with open(args.dx_token) as f:
+        contents = json.load(f)
+
+    dx_login(contents["token"])
 
     # Establish connection
     conn = pyodbc.connect(

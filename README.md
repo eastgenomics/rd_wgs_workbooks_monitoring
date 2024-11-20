@@ -11,7 +11,7 @@ A map of the process is shown below:
 ![Image of workflow](RD_WGS_Shire_workflow.png)
 
 **Inputs (required)**:
-* `--dx_token`: DNAnexus token
+* `--dx_token`: JSON file containing DNAnexus token, under the key "token"
 * `--config`: JSON config for monitor. Should be most recent release. See [rd_wgs_workbook_monitor_config](https://github.com/eastgenomics/rd_wgs_workbook_monitor_config) for more details
 
 **Inputs (optional)**:
@@ -21,7 +21,8 @@ A map of the process is shown below:
 
 ## Example command to run
 ```
-python3 rd_wgs_workbooks_monitor.py --dx_token <token>
+python3 rd_wgs_workbooks_monitor.py 
+--dx_token /appdata/configs/rd_wgs_workbooks/rd_wgs_workbook_monitoring_dx_token.json
 --config /appdata/configs/rd_wgs_workbooks/rd_wgs_workbook_monitor_config_1.0.0.json
 --download_path "/appdata/clingen/cg/Regional Genetics Laboratories/Molecular Genetics/Data archive/Sequencing HT/WGS_automated/"
 ```
