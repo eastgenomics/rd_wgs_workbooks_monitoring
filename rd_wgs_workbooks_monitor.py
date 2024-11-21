@@ -74,16 +74,16 @@ def check_if_correct_json_downloaded(json_file_id, rnumber, conn):
 
     if query_json['family_id'] == rnumber:
         query = (
-            f"UPDATE dbo.CIPAPIReferralNumber SET StatusReferralNumberID = 6 "
-            f"WHERE JSONFileID = '{json_file_id}' AND "
-            f"ReferralNumber = '{rnumber}'"
+            f"UPDATE CIPAPI.dbo.CIPAPIReferralNumber SET "
+            f"StatusReferralNumberID = 6 WHERE JSONFileID = '{json_file_id}' "
+            f"AND ReferralNumber = '{rnumber}'"
         )
         update_shire(query, conn)
     else:
         query = (
-            f"UPDATE dbo.CIPAPIReferralNumber SET StatusReferralNumberID = 7 "
-            f"WHERE JSONFileID = '{json_file_id}' AND "
-            f"ReferralNumber = '{rnumber}'"
+            f"UPDATE CIPAPI.dbo.CIPAPIReferralNumber SET "
+            f"StatusReferralNumberID = 7 WHERE JSONFileID = '{json_file_id}' "
+            f"AND ReferralNumber = '{rnumber}'"
         )
         update_shire(query, conn)
 
@@ -117,7 +117,7 @@ def download(xlsx_files, download_path, conn):
 
         if os.path.isfile(download_path + rnumber + ".xlsx"):
             query = (
-                "UPDATE dbo.CIPAPIReferralNumber "
+                "UPDATE CIPAPI.dbo.CIPAPIReferralNumber "
                 "SET StatusReferralNumberID = 10 "
                 f"WHERE ReferralNumber = '{rnumber}'"
             )
@@ -144,7 +144,7 @@ def monitor(jobs_launched, conn):
             )
             xlsx_file_ids[rnumber] = xlsx_file_id
             query = (
-                "UPDATE dbo.CIPAPIReferralNumber "
+                "UPDATE CIPAPI.dbo.CIPAPIReferralNumber "
                 "SET StatusReferralNumberID = 9, "
                 f"XLSXFileID = '{xlsx_file_id}' "
                 f"WHERE ReferralNumber = '{rnumber}'"
@@ -172,8 +172,8 @@ def launch(args, conn):
         conn: pyodbc database connection
     '''
     query = (
-        "SELECT * FROM dbo.CIPAPIReferralNumber WHERE StatusReferralNumberID "
-        " = 5;"
+        "SELECT * FROM CIPAPI.dbo.CIPAPIReferralNumber WHERE "
+        "StatusReferralNumberID = 5;"
     )
     df = pd.read_sql(query, conn)
 
@@ -194,8 +194,8 @@ def launch(args, conn):
 
     print("Checking for records in status JSONCheckPass or DXJobStarted")
     query = (
-        "Select * FROM dbo.CIPAPIReferralNumber WHERE StatusReferralNumberID "
-        "IN (6, 8)"
+        "Select * FROM CIPAPI.dbo.CIPAPIReferralNumber WHERE "
+        "StatusReferralNumberID IN (6, 8)"
     )
 
     df = pd.read_sql(query, conn)
@@ -239,7 +239,7 @@ def launch(args, conn):
         launched_jobs[rnumber] = job
 
         query = (
-            f"UPDATE dbo.CIPAPIReferralNumber"
+            f"UPDATE CIPAPI.dbo.CIPAPIReferralNumber"
             " SET StatusReferralNumberID = 8 WHERE "
             f"JSONFileID = '{json_file_id}' AND ReferralNumber = '{rnumber}';"
         )
@@ -276,8 +276,8 @@ def main():
         # Monitor the jobs
         xlsx_file_ids = monitor(jobs, conn)
 
-    if xlsx_file_ids and args.download_path:
-        download(xlsx_file_ids, args.download_path, conn)
+        if xlsx_file_ids and args.download_path:
+            download(xlsx_file_ids, args.download_path, conn)
 
     # Close connection
     conn.close()
